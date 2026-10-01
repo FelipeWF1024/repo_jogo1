@@ -69,18 +69,47 @@ function setDirection(x, y){
 
 window.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
-    if(key === "arrowup" || key == "w")
+    if(key === "arrowup" || key === "w")
         setDirection(0, -1)
-    if(key === "arrowdown" || key == "s")
+    if(key === "arrowdown" || key === "s")
         setDirection(0, 1)
-    if(key === "arrowleft" || key == "a")
+    if(key === "arrowleft" || key === "a")
         setDirection(-1, 0)
-    if(key === "arrowright" || key == "d")
+    if(key === "arrowright" || key === "d")
         setDirection(1, 0)
     if(key === "r")
         reset();
     if(key === " "){/*Altera PLAYING - PAUSED e sai de READY*/}
 });
+
+function tick(){
+    dir = nextDir;
+    const head = {x: snake[0] + dir.x, y: snake[0] + dir.y}
+
+    const hitwall = head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS
+
+    const hitbody = snake.some((s) => s.x === head && s.y === ROWS);
+
+    if (hitwall || hitbody){
+        state = STATES.OVER;
+
+        if(score > best){
+            best = score;
+
+            localStorage.setItem("snake-best", String(best));
+        }
+        return;
+    }
+
+    snake.unshift(head); // Criar uma nova cabeça
+
+    if(head.x === food.x && head.y === food.y){
+        score += 10;
+        spawnApple(); // Comer a maçã, NÃO remove um pedaço da cauda.
+    }else{
+        snake.pop(); // Não comeu, fila continua.
+    }
+}
 
 function update(dt) {
     player.x += player.vx * dt;
@@ -95,31 +124,43 @@ function update(dt) {
     // || é ou
 }
 
+function drawCell(x, y, color){
+    ctx.fillStyle = color;
+    ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+}
+
 // Personagem, funções e aparência
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.arc(player.x + player.w / 2, player.y + player.h / 2, player.w / 2, 0, Math.PI * 2);
+    ctx.fillStyle = "#022c22";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#867f";
-    ctx.fill();
+    drawCell(food.x, food.y, "#880808");
+    snake.forEach((s, i) => drawCell(s.x, s.y, i === 0 ? "#22c55e" : "#4ade80"));
 
-    ctx.fillStyle = "#fff"
-
-    ctx.fillText(
-        "O DeltaTime - dt independe da taxa de quadros", 12, 20);
+    if(state != STATES.PLAYING){
+        ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle ="#f8fafc"
+        ctx.textAlign = "center";
+        ctx.font = "bold, 28px Segoe UI";
+        ctx.fillText(state, canvas.width / 2, canvas.height / 2);
+    }
 }
 // Eu uso dt porque ele faz com que a velocidade de movimento seja a mesma independente da taxa de quadros do dispositivo.
 
 function loop(ts) {
-    if (!last) last = ts;
-
-    const dt = Math.min(
-        0.05, (ts - last) / 1000); // ms = segundo
+    const dt = ts - last; // ms = segundo
     last = ts;
-    update(dt);
-    draw();
-    requestAnimationFrame(loop);
+
+    if(state === STATES.PLAYING){
+        acc += dt;
+        while(acc >= TICKS_MS){
+            tick();
+            acc -= TICKS_MS;
+        }
+    }
+    draw()
+    requestAnimationFrame(loop)
 }
 
 requestAnimationFrame(loop); // Executar o primeiro disparo 
