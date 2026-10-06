@@ -1,13 +1,87 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    background-color: #111;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top, #32121f 0%, #120b10 45%, #070609 100%);
+    color: #f5e9ed;
+    font-family: "Segoe UI", Arial, sans-serif;
     text-align: center;
+    padding: 25px 10px;
+}
+
+h1 {
+    margin: 5px 0 8px;
+    font-size: 38px;
+    letter-spacing: 2px;
+    color: #e85b7d;
+    text-shadow:
+        0 0 8px #8f2747,
+        0 0 20px rgba(190, 45, 90, 0.5);
+}
+
+.controls {
+    margin: 0 0 18px;
+    color: #c9b7bd;
+    font-size: 14px;
+}
+
+.HUD {
+    width: 480px;
+    max-width: 95vw;
+    margin: auto;
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+    padding: 12px;
+    background: #151217;
+    border: 2px solid #9e294d;
+    box-shadow:
+        0 0 12px rgba(190, 40, 90, 0.25),
+        inset 0 0 12px rgba(0, 0, 0, 0.8);
+    color: #bfaeb5;
+}
+
+.HUD span {
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.HUD strong {
+    margin-top: 3px;
+    font-size: 18px;
+    color: #ed6688;
 }
 
 canvas {
-    background-color: #222;
-    border: 3px solid #4ade80;
-    margin-top: 16px;
+    display: block;
+    width: 480px;
+    max-width: 95vw;
+    height: auto;
+    margin: 18px auto 0;
+    background: #0d0c10;
+    border: 4px solid #a52b50;
+    box-shadow:
+        0 0 0 2px #351421,
+        0 0 25px rgba(170, 35, 80, 0.35);
+}
+
+.hint {
+    margin-top: 14px;
+    color: #bfaeb5;
+    font-size: 13px;
+}
+
+@media (max-width: 550px) {
+    h1 {
+        font-size: 30px;
+    }
+    .HUD {
+        width: 95vw;
+    }
 }
