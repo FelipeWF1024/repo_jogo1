@@ -3,11 +3,13 @@ const ctx = canvas.getContext("2d");
 const scoreE1 = document.getElementById("score");
 const bestE1 = document.getElementById("snake-best");
 const stateE1 = document.getElementById("state");
+const mapE1 = document.getElementById("map");
 
 const CELL = 24;
 const COLS = canvas.width/CELL; //480 / 24 = 20
 const ROWS = canvas.height/CELL;
-const TICKS_MS = 110; //A cobra se move 1 célula a cada 110ms.
+let TICKS_MS = 150;
+let currentMap = 1;
 
 const STATES = {
     READY: "PRONTO",
@@ -20,8 +22,6 @@ const STATES = {
 // w, h - Definir o tamanho do personagem
 // vx - Define a velocidade Horizontal
 
-const player = {x: 40, y: 160, w: 32, h: 32, vx: 10, vy: 10};
-
 let state = STATES.READY;
 let snake = []
 let dir = {x:1, y:0}
@@ -31,26 +31,135 @@ let score = 0;
 let acc = 0 //Acumulador de tempo
 let last = 0; // Marca a posição do quadro anterior
 let best = localStorage.getItem("snake-best") || 0;
+bestE1.textContent = best;
 
-const obstacles = [
-    // Estante / caixa superior
-    { x: 5, y: 4 },
-    { x: 6, y: 4 },
-    { x: 7, y: 4 },
-    // Móvel da direita
+const map1Obstacles = [
+    { x: 2, y: 2 },
+    { x: 3, y: 2 },
+    { x: 4, y: 2 },
+
+    { x: 19, y: 2 },
+    { x: 20, y: 2 },
+    { x: 21, y: 2 },
+
+    { x: 2, y: 5 },
+    { x: 2, y: 6 },
+    { x: 2, y: 7 },
+
+    { x: 21, y: 5 },
+    { x: 21, y: 6 },
+    { x: 21, y: 7 },
+
+    { x: 8, y: 4 },
+    { x: 9, y: 4 },
+
     { x: 15, y: 5 },
-    { x: 15, y: 6 },
-    { x: 15, y: 7 },
-    // Caixas do centro
-    { x: 10, y: 9 },
-    { x: 10, y: 10 },
-    // Mesa inferior esquerda
-    { x: 3, y: 12 },
-    { x: 4, y: 12 },
-    // Móvel inferior
-    { x: 16, y: 12 },
-    { x: 17, y: 12 }
+    { x: 16, y: 5 },
+
+    { x: 6, y: 8 },
+    { x: 6, y: 9 },
+
+    { x: 17, y: 8 },
+    { x: 17, y: 9 },
+
+    { x: 2, y: 11 },
+    { x: 3, y: 11 },
+    { x: 4, y: 11 },
+
+    { x: 19, y: 11 },
+    { x: 20, y: 11 },
+    { x: 21, y: 11 },
+
+    { x: 9, y: 12 },
+    { x: 10, y: 12 },
+
+    { x: 14, y: 12 },
+    { x: 15, y: 12 }
 ];
+
+const map2Obstacles = [
+    { x: 2, y: 2 },
+    { x: 3, y: 2 },
+    { x: 4, y: 2 },
+    { x: 5, y: 2 },
+    { x: 2, y: 3 },
+    { x: 3, y: 3 },
+    { x: 4, y: 3 },
+    { x: 5, y: 3 },
+    { x: 2, y: 4 },
+    { x: 3, y: 4 },
+    { x: 4, y: 4 },
+    { x: 5, y: 4 },
+    { x: 2, y: 5 },
+    { x: 3, y: 5 },
+    { x: 4, y: 5 },
+    { x: 5, y: 5 },
+
+    { x: 18, y: 2 },
+    { x: 19, y: 2 },
+    { x: 20, y: 2 },
+    { x: 21, y: 2 },
+    { x: 18, y: 3 },
+    { x: 19, y: 3 },
+    { x: 20, y: 3 },
+    { x: 21, y: 3 },
+    { x: 18, y: 4 },
+    { x: 19, y: 4 },
+    { x: 20, y: 4 },
+    { x: 21, y: 4 },
+    { x: 18, y: 5 },
+    { x: 19, y: 5 },
+    { x: 20, y: 5 },
+    { x: 21, y: 5 },
+
+    { x: 2, y: 7 },
+    { x: 3, y: 7 },
+    { x: 4, y: 7 },
+    { x: 2, y: 8 },
+    { x: 3, y: 8 },
+    { x: 4, y: 8 },
+    { x: 2, y: 9 },
+    { x: 3, y: 9 },
+    { x: 4, y: 9 },
+
+    { x: 19, y: 7 },
+    { x: 20, y: 7 },
+    { x: 21, y: 7 },
+    { x: 19, y: 8 },
+    { x: 20, y: 8 },
+    { x: 21, y: 8 },
+    { x: 19, y: 9 },
+    { x: 20, y: 9 },
+    { x: 21, y: 9 },
+
+    { x: 5, y: 11 },
+    { x: 6, y: 11 },
+    { x: 7, y: 11 },
+    { x: 8, y: 11 },
+    { x: 5, y: 12 },
+    { x: 6, y: 12 },
+    { x: 7, y: 12 },
+    { x: 8, y: 12 },
+    { x: 5, y: 13 },
+    { x: 6, y: 13 },
+    { x: 7, y: 13 },
+    { x: 8, y: 13 },
+
+    { x: 15, y: 11 },
+    { x: 16, y: 11 },
+    { x: 17, y: 11 },
+    { x: 18, y: 11 },
+    { x: 15, y: 12 },
+    { x: 16, y: 12 },
+    { x: 17, y: 12 },
+    { x: 18, y: 12 },
+    { x: 15, y: 13 },
+    { x: 16, y: 13 },
+    { x: 17, y: 13 },
+    { x: 18, y: 13 }
+];
+
+let obstacles = map1Obstacles;
 
 function reset(){
     const midX = Math.floor(COLS/2);
@@ -91,14 +200,15 @@ function isOccupied(x, y) {
     return false;
 }
 
-function spawnApple(){
+function spawnApple() {
     let validPosition = false;
-    while (!validPosition){
+    while (!validPosition) {
         food = {
             x: Math.floor(Math.random() * COLS),
             y: Math.floor(Math.random() * ROWS)
-        }
-    }   validPosition = !isOccupied(food.x, food.y);
+        };
+        validPosition = !isOccupied(food.x, food.y);
+    }
     //Função some() retornar 'True' se algum segmento da Snake ocupar determinada céluls.
 }
 
@@ -113,6 +223,20 @@ function setDirection(x, y) {
         x: x,
         y: y
     };
+}
+
+function changeMap(map) {
+    currentMap = map;
+    if (map === 1) {
+        obstacles = map1Obstacles;
+        TICKS_MS = 150;
+    }
+    if (map === 2) {
+        obstacles = map2Obstacles;
+        TICKS_MS = 180;
+    }
+    mapE1.textContent = currentMap;
+    reset();
 }
 
 window.addEventListener("keydown", (e) => {
@@ -149,7 +273,13 @@ window.addEventListener("keydown", (e) => {
         ) {
             state = STATES.PLAYING;
         }
-        stateEl.textContent = state;
+        stateE1.textContent = state;
+    }
+    if (key === "1") {
+        changeMap(1);
+    }
+    if (key === "2") {
+        changeMap(2);
     }
     if (key === "r") {
         reset();
@@ -160,7 +290,7 @@ window.addEventListener("keydown", (e) => {
         ["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(key))
         {
         state = STATES.PLAYING;
-        stateEl.textContent = state;
+        stateE1.textContent = state;
     }
 });
 
@@ -193,11 +323,11 @@ function tick() {
 
     if (hitWall || hitBody || hitBlock) {
         state = STATES.OVER;
-        stateEl.textContent = state;
+        stateE1.textContent = state;
         if (score > best) {
             best = score;
             localStorage.setItem("snake-best", String(best));
-            bestEl.textContent = best;
+            bestE1.textContent = best;
         }return;
     }
 
@@ -212,18 +342,7 @@ function tick() {
     }
 }
 
-function update(dt) {
-    player.x += player.vx * dt;
-    player.y += player.vy * dt;
-    // Bater na parede esquerda ou direita? Inverte a direção do movimento
-    if (player.x < 0 || player.x + player.w > canvas.width) {
-        player.vx *= -1;
-    }
-    if (player.y < 0 || player.y + player.w > canvas.height) {
-        player.vy *= -1;
-    }
     // || é ou
-}
 
 function drawCell(x, y, color) {
     ctx.fillStyle = color;
@@ -336,14 +455,14 @@ function drawHouse() {
     ctx.stroke();
     ctx.fillStyle = "#4d2634";
     ctx.fillRect(
-        432,
-        72,
+        488,
+        160,
         24,
         24
     );
     ctx.fillStyle = "#963d5c";
     ctx.beginPath();
-    ctx.arc(444, 66, 13, 0, Math.PI * 2);
+    ctx.arc(500, 150, 13, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#5b2339";
     ctx.fillRect(
@@ -361,25 +480,164 @@ function drawHouse() {
     );
 }
 
+function drawObstacles() {
+    obstacles.forEach(obstacle => {
+        const px = obstacle.x * CELL;
+        const py = obstacle.y * CELL;
+        ctx.fillStyle = "#050406";
+        ctx.fillRect(
+            px + 3,
+            py + 4,
+            CELL - 2,
+            CELL - 2
+        );
+        ctx.fillStyle = "#3a3037";
+        ctx.fillRect(
+            px + 2,
+            py + 2,
+            CELL - 4,
+            CELL - 4
+        );
+        ctx.strokeStyle = "#8d3450";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+            px + 3,
+            py + 3,
+            CELL - 6,
+            CELL - 6
+        );
+        ctx.strokeStyle = "#61263a";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(
+            px + 7,
+            py + 7
+        );
+        ctx.lineTo(
+            px + CELL - 7,
+            py + CELL - 7
+        );
+        ctx.moveTo(
+            px + CELL - 7,
+            py + 7
+        );
+        ctx.lineTo(
+            px + 7,
+            py + CELL - 7
+        );
+        ctx.stroke();
+    });
+}
+
+function drawApple() {
+    const cx = food.x * CELL + CELL / 2;
+    const cy = food.y * CELL + CELL / 2 + 2;
+    ctx.shadowColor = "#ff315d";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = "#c7284d";
+    ctx.beginPath();
+    ctx.arc(cx - 4, cy, 7, 0, Math.PI * 2);
+    ctx.arc(cx + 4, cy, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#6d432b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 7);
+    ctx.lineTo(cx + 2, cy - 11);
+    ctx.stroke();
+    ctx.fillStyle = "#d45b79";
+    ctx.beginPath();
+    ctx.ellipse(cx + 5, cy - 9, 4, 2, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawSnake() {
+    snake.forEach((segment, index) => {
+        const px = segment.x * CELL;
+        const py = segment.y * CELL;
+        if (index === 0) {
+            ctx.fillStyle = "#202026";
+            ctx.fillRect( px + 2, py + 2, CELL - 4, CELL - 4);
+            ctx.strokeStyle = "#b9365d";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(px + 3, py + 3, CELL - 6, CELL - 6);
+            ctx.fillStyle = "#ef6686";
+            if (dir.x !== 0) {
+                const eyeX =
+                    dir.x === 1
+                        ? px + 17
+                        : px + 7;
+                ctx.fillRect(eyeX, py + 7 ,3, 3);
+                ctx.fillRect(eyeX, py + 15, 3, 3);
+            } else {
+                const eyeY =
+                    dir.y === 1
+                        ? py + 17
+                        : py + 7;
+                ctx.fillRect(px + 7, eyeY, 3, 3);
+                ctx.fillRect(px + 15, eyeY, 3, 3);
+            }
+        } else {
+            ctx.fillStyle =
+                index % 2 === 0
+                    ? "#332d34"
+                    : "#4a3540";
+            ctx.fillRect(
+                px + 2,
+                py + 2,
+                CELL - 4,
+                CELL - 4
+            );
+            ctx.fillStyle = "#8e304d";
+            ctx.fillRect(
+                px + 4,
+                py + 17,
+                CELL - 8,
+                3
+            );
+        }
+    });
+}
+
 // Personagem, funções e aparência
 function draw() {
-    ctx.fillStyle = "#022c22";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawCell(food.x, food.y, "#880808");
-    snake.forEach((s, i) => drawCell(s.x, s.y, i === 0 ? "#22c55e" : "#4ade80"));
-
-    if(state !== STATES.PLAYING){
-        ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle ="#f8fafc"
+    drawFloor();
+    // drawHouse();
+    drawObstacles();
+    drawApple();
+    drawSnake();
+    if (state !== STATES.PLAYING) {
+        ctx.fillStyle = "rgba(5, 4, 7, 0.72)";
+        //ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //ctx.fillStyle = "#171219";
+        //ctx.fillRect(105, 125, 270, 110);
+        //ctx.strokeStyle = "#a52b50";
+        //ctx.lineWidth = 2;
+        //ctx.strokeRect(105, 125, 270, 110);
         ctx.textAlign = "center";
-        ctx.font = "bold, 28px Segoe UI";
-        ctx.fillText(state, canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = "#ed6688";
+        ctx.font = "bold 28px Segoe UI";
+        ctx.fillText(
+            state,
+            canvas.width / 2,
+            165
+        );
+        ctx.fillStyle = "#d0c2c8";
         ctx.font = "16px Segoe UI";
-        ctx.fillText(state === STATES.OVER ?
-            "Pressione R para reiniciar" :
-            "Pressione ESPAÇO para jogar", canvas.width / 2, canvas.height / 2 + 32);
+        if (state === STATES.OVER) {
+            ctx.fillText(
+                "Pressione R para reiniciar",
+                canvas.width / 2,
+                200
+            );
+        } else {
+            ctx.fillText(
+                "Pressione ESPAÇO para jogar",
+                canvas.width / 2,
+                200
+            );
+        }
     }
 }
 // Eu uso dt porque ele faz com que a velocidade de movimento seja a mesma independente da taxa de quadros do dispositivo.
