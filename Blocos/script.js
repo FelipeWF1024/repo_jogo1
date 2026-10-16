@@ -9,6 +9,7 @@ let bricks = [];
 let score = 0;
 let lives = 3;
 let running = false;
+let last = 0;
 
 function construir(){
 
@@ -29,7 +30,7 @@ function construir(){
 
 window.addEventListener( "keydown", (e) =>{
     teclas [e.key.toLowerCase()] = true
-    if(e.conde  === "space"){
+    if(e.code  === "space"){
         e.preventDefault();
         running = true;
         bola.launched = true
@@ -41,9 +42,85 @@ window.addEventListener( "keydown", (e) =>{
 
 window.addEventListener( "keyup", (e) => {
     teclas [e.key.toLowerCase()] = false
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    const ret = canvas.getBoundingClientRect();
+    paddle.x = e.x - ret.left - paddle.w / 2;
+    paddle.x = Math.max(8, Math.min(canvas.width - paddle.w - 8, paddle.x));
+});
+
+function resetBola(){
+    bola.x = paddle.x + paddle.w / 2
+    bola.y = paddle.y - 14;
+    bola.vx = 180 * (Math.random() > 0.5 ? 1 : -1);
+    bola.vy = -240;
+    bola.launched = false;
 }
-);
 
 function reset(){
-
+    score = 0
+    lives = 3
+    running = false
+    construir();
+    resetBola();
 }
+
+function colidirBloco(b){
+    return(
+        bola.x > b.x && 
+        bola.x < b.x + b.w && 
+        bola.y > b.y && 
+        bola.y < b.y + b.w
+    );
+}
+
+
+function update(dt){
+    
+}
+
+function desenhar(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+        ctx.beginPath();
+        ctx.fillStyle = "#f8fafc";
+        ctx.arc(bola.x, bola.y, bola.r, 0, Math.PI * 2);
+        ctx.fill();
+        bricks.forEach((b) => {
+            if (!b.alive) return;
+            ctx.fillStyle = b.color;
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+        });
+        ctx.fillStyle = "#e5e7eb";
+        ctx.font = "16px Arial";
+        ctx.fillText("Pontos " + score + "   Vidas " + lives, 16, 24);
+        if (!running && lives > 0) {
+            ctx.textAlign = "center";
+            ctx.fillText("ESPAÇO para lançar", canvas.width / 2, canvas.height / 2);
+            ctx.textAlign = "left";
+        }
+        if (lives <= 0) {
+            ctx.textAlign = "center";
+            ctx.font = "bold 28px Arial";
+            ctx.fillText(
+                "GAME OVER — R reinicia",
+                canvas.width / 2,
+                canvas.height / 2,
+            );
+            ctx.textAlign = "left";
+        }
+}
+
+function loop(ts){
+    if(!last) last = ts;
+    const dt = Math.min(0.033, (ts - last) / 1000);
+    last = ts;
+    update(dt);
+    desenhar();
+    requestAnimationFrame(loop);
+}
+
+reset();
+requestAnimationFrame(loop)
